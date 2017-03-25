@@ -9,7 +9,7 @@ defmodule CouldDoBetter do
   discussed. As a target, aim for a new set of functions that are each
   one line long, except where that makes the code worse.
 
-  Remember to leave the original function's API intact. 
+  Remember to leave the original function's API intact.
 
   We'll discuss a couple of people's solutions at the end.
   """
@@ -18,7 +18,7 @@ defmodule CouldDoBetter do
   @doc """
   The file `file_name` contains a list of words, one per line.
   This function scans it and returns a list of anagrams. where each
-  entry in the list is itself a list of words that are anagrams of each 
+  entry in the list is itself a list of words that are anagrams of each
   other. So, given the list
 
       cat
@@ -38,18 +38,33 @@ defmodule CouldDoBetter do
   """
 
   def find_anagrams_in(file_name) do
-    content = File.read!(file_name)
-    words = String.split(content, "\n")
-    signatures = Enum.reduce(words, %{}, fn word, sigs ->
-      letters = String.codepoints(word)
-      word_sig = Enum.sort(letters)
-      Map.update(sigs, word_sig, [ word ], fn list -> [ word | list ] end)
-    end)
-    word_groups = Map.values(signatures)
-    anagrams = Enum.filter(word_groups, fn list -> length(list) > 1 end)
-    anagrams
+    file_name
+    |> words
+    |> extract_signature_maps
+    |> Map.values()
+    |> Enum.filter(&has_anagram?/1)
   end
-  
+
+  def extract_signature_maps(words) do
+    words
+    |> Enum.reduce(%{}, &signature_maps/2)
+  end
+
+  def words(file_name) do
+    File.read!(file_name)
+    |> String.split("\n")
+  end
+
+  def has_anagram?(list) when length(list) > 1, do: true
+
+  def has_anagram?(_list), do: false
+
+  def signature_maps(word, sigs) do
+    Map.update(sigs, signature(word), [word], fn list -> [ word | list ] end)
+  end
+
+  def signature(word), do: String.codepoints(word) |> Enum.sort()
+
 end
 
 
